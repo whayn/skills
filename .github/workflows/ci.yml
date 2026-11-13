@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
-      - run: "python -m pip install pytest pyyaml ruff"
+      - run: "python -m pip install pytest pyyaml ruff skills-ref"
       - run: "ruff check . && ruff format --check ."
       - run: git diff --check
 
@@ -45,11 +45,11 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
-      - run: "python -m pip install pytest pyyaml ruff"
+      - run: "python -m pip install pytest pyyaml ruff skills-ref"
       - name: Run tests
         env:
           TMPDIR: ${{ runner.temp }}
-        run: "python -m pytest -q"
+        run: "python -m pytest -q -rs && agentskills validate skills/repo-workflow"
 
   secrets:
     name: Secrets
