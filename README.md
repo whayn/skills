@@ -22,6 +22,13 @@ npx skills add whayn/skills --skill repo-workflow        # this project
 npx skills add whayn/skills --skill repo-workflow -g     # every project
 ```
 
+### Claude Code plugin marketplace
+
+```text
+/plugin marketplace add whayn/skills
+/plugin install repo-workflow@whayn-skills
+```
+
 ### By hand
 
 Copy `skills/repo-workflow/` (the whole folder, not just `SKILL.md`) into your
