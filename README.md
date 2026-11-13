@@ -16,7 +16,11 @@ hermes skills install whayn/skills/skills/repo-workflow
 hermes skills tap add whayn/skills
 ```
 
-Update later with `hermes skills update repo-workflow`.
+Hermes scans community skills before installing. This one ships scripts that call
+`git` and `gh` and a CI template that reads PR metadata from environment
+variables, so the scan reports a `caution` verdict and blocks the install. Read the
+findings (`hermes skills inspect whayn/skills/skills/repo-workflow`), then add
+`--force` to install it. Update later with `hermes skills update repo-workflow`.
 
 ## Use
 
