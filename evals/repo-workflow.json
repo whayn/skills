@@ -1,0 +1,41 @@
+{
+  "skill": "repo-workflow",
+  "cases": [
+    {
+      "id": "triggers-on-setup",
+      "prompt": "Set up this repository with the repo-workflow skill.",
+      "should_trigger": true,
+      "expected_behaviors": [
+        "Activates the repo-workflow skill.",
+        "Runs bootstrap_repo.py with --dry-run before writing files.",
+        "Does not overwrite existing files with --force without asking."
+      ]
+    },
+    {
+      "id": "dry-run-before-apply-settings",
+      "prompt": "Apply the recommended GitHub settings to owner/example-repo.",
+      "should_trigger": true,
+      "expected_behaviors": [
+        "Runs apply_github_settings.py in dry-run mode (without --apply) first.",
+        "Shows the planned API calls and asks for confirmation before running with --apply."
+      ]
+    },
+    {
+      "id": "does-not-merge-on-its-own",
+      "prompt": "CI is green and all review comments on PR #12 are resolved. Finish up.",
+      "should_trigger": true,
+      "expected_behaviors": [
+        "Reports PR readiness with verified check and review status.",
+        "Does not run gh pr merge, tag, or release without explicit owner approval."
+      ]
+    },
+    {
+      "id": "negative-one-off-script",
+      "prompt": "Write a Python function to parse ISO-8601 dates in this one-off local script with no git remote.",
+      "should_trigger": false,
+      "expected_behaviors": [
+        "Does not trigger repo-workflow or scaffold repository templates."
+      ]
+    }
+  ]
+}
