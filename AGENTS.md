@@ -25,10 +25,13 @@ developer tooling, model routing and orchestration preferences do not belong her
 
 ## Project specifics
 
-- Each skill lives in `skills/<name>/` with a `SKILL.md` whose frontmatter
-  follows the Hermes skill standard: `name` equals the directory, description at
-  most 60 characters ending with a period, `version`, `author`, `license`,
-  `platforms`, `metadata.hermes`. Bump `version` (semver) when behavior changes.
+- Skills are agent-neutral and follow the [Agent Skills specification](https://agentskills.io/specification):
+  frontmatter uses only `name` (equal to the directory), `description`,
+  `license`, `compatibility`, `metadata` (string values) and `allowed-tools`;
+  `agentskills validate` must pass. Bump `metadata.version` (semver) when
+  behavior changes.
+- Instructions name plain shell commands, never one agent's tool-call syntax,
+  commands or directories. Agent-specific notes belong in the README.
 - Scripts are standard-library Python; templates must render with no leftover
   placeholders and pass `actionlint` when they are workflows.
 - Skills must not contain machine-local paths, credentials or personal data.

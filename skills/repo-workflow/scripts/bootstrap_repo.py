@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Render the repo-workflow templates into a repository.
 
-Writes CONTRIBUTING.md, AGENTS.md, SECURITY.md, .editorconfig and .github/ (PR and
+Writes CONTRIBUTING.md, AGENTS.md (plus a CLAUDE.md that imports it), SECURITY.md,
+.editorconfig and .github/ (PR and
 issue templates, CODEOWNERS, release notes, Dependabot, CI). Never overwrites an
 existing file unless --force. Standard library only.
 """
@@ -23,7 +24,6 @@ PYTHON_DEFAULTS = {
     "TEST_CMD": "python -m pytest -q",
     "BUILD_CMD": "python -m build",
 }
-EXCLUDES = ("/HANDOFF.md", "/.hermes/", "/.worktrees/")
 
 
 def target_path(relative):
@@ -112,11 +112,23 @@ def plan(args):
         files.append((destination, text))
     if args.local_notebook:
         local = TEMPLATES / "local"
+        notebook = notebook_dir(args)
         files.append((Path("HANDOFF.md"), (local / "HANDOFF.md").read_text(encoding="utf-8")))
         files.append(
-            (Path(".hermes/README.md"), (local / "notebook-README.md").read_text(encoding="utf-8"))
+            (notebook / "README.md", (local / "notebook-README.md").read_text(encoding="utf-8"))
         )
     return files
+
+
+def notebook_dir(args):
+    path = Path(args.notebook_dir)
+    if path.is_absolute() or ".." in path.parts or not path.parts or path.parts[0] == ".git":
+        raise SystemExit("--notebook-dir must be a relative path inside the repository")
+    return path
+
+
+def excludes(args):
+    return ("/HANDOFF.md", f"/{notebook_dir(args).as_posix()}/", "/.worktrees/")
 
 
 def git_dir(target):
@@ -145,6 +157,9 @@ def main(argv=None):
     for name in ("install", "lint", "test", "build"):
         parser.add_argument(f"--{name}", help=f"{name} command ('' omits optional steps)")
     parser.add_argument("--local-notebook", action="store_true", help="add git-excluded notes")
+    parser.add_argument(
+        "--notebook-dir", default=".notes", help="git-excluded notes directory (default: .notes)"
+    )
     parser.add_argument("--force", action="store_true", help="overwrite existing files")
     parser.add_argument("--dry-run", action="store_true", help="report without writing")
     args = parser.parse_args(argv)
@@ -168,7 +183,7 @@ def main(argv=None):
             raise SystemExit("--local-notebook needs a git repository (for .git/info/exclude)")
         exclude = gdir / "info" / "exclude"
         current = exclude.read_text(encoding="utf-8") if exclude.exists() else ""
-        missing = [line for line in EXCLUDES if line not in current.splitlines()]
+        missing = [line for line in excludes(args) if line not in current.splitlines()]
         report.append({"path": str(exclude), "action": f"exclude {missing}" if missing else "ok"})
         if missing and not args.dry_run:
             exclude.parent.mkdir(parents=True, exist_ok=True)

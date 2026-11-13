@@ -1,14 +1,12 @@
 ---
 name: repo-workflow
-description: Bootstrap and run an evidence-first GitHub repo workflow.
-version: 0.1.0
-author: Whayn (whayn)
+description: Bootstrap and run an evidence-first GitHub repository workflow (issue, branch, tests first, verified PR, bot review and CI, owner merge). Use when setting up a new repository, adopting the workflow in an existing one, making any change in a repository whose CONTRIBUTING.md points to this skill, or doing repository housekeeping.
 license: MIT
-platforms: [linux, macos, windows]
+compatibility: Any coding agent that can run shell commands. Needs git and Python 3.9+; applying GitHub settings needs the GitHub CLI (gh) with admin rights.
 metadata:
-  hermes:
-    tags: [github, workflow, contributing, ci, pull-requests, conventions]
-    related_skills: [github-pr-workflow, github-code-review, test-driven-development, systematic-debugging, requesting-code-review]
+  author: whayn
+  version: "0.2.0"
+  source: https://github.com/whayn/skills
 ---
 
 # Repo Workflow
@@ -34,7 +32,7 @@ run a different process (follow theirs).
 - `gh` authenticated as an account with admin rights on the target repository
   (settings) or write rights (normal changes).
 - Python 3.9+ for `scripts/`. No third-party packages.
-- `SKILL_DIR` below means this skill's directory (`skill_dir` in `skill_view`).
+- `SKILL_DIR` below means the directory containing this `SKILL.md`.
 
 ## Authority
 
@@ -103,25 +101,29 @@ Default to one capable agent per coherent change. Delegate only for independent
 components, broad parallel exploration, or an independent final review of a frozen
 diff. The main agent keeps architecture decisions; workers get bounded scope,
 file ownership and acceptance criteria, and do not commit, push or redesign.
-Developer tooling and model choices live in skills, not in `AGENTS.md`.
+Developer tooling and model choices live in skills, not in `AGENTS.md`. If your
+agent has test-driven-development, debugging or code-review skills, use them for
+steps 4, 6 and 8.
 
 ## Bootstrap a Repository
 
 1. Create the repository (or clone it) and check out `main`.
 2. Render the files, dry run first:
-   `terminal(command="python3 SKILL_DIR/scripts/bootstrap_repo.py TARGET --owner OWNER --repo REPO --project 'Name' --stack python --dry-run")`.
+   `python3 SKILL_DIR/scripts/bootstrap_repo.py TARGET --owner OWNER --repo REPO --project 'Name' --stack python --dry-run`.
    Use `--stack generic --install ... --lint ... --test ... --build ...` for
    non-Python projects, then add the toolchain setup step marked in `ci.yml`.
-   Add `--local-notebook` to create git-excluded `HANDOFF.md` and `.hermes/`.
+   Add `--local-notebook` to create a git-excluded `HANDOFF.md` and notes
+   directory (`.notes/`; pick another with `--notebook-dir`).
    Done when the dry run lists every file as `create` and no unresolved placeholder.
 3. Rerun without `--dry-run`. Existing files are skipped unless `--force`; when
    adopting into an existing repo, merge skipped files by hand instead.
-4. Fill the `Project specifics` and `Code Review Rules` sections of `AGENTS.md`,
+4. Fill the `Project specifics` and `Code Review Rules` sections of `AGENTS.md`
+   (the single agent-instruction file; `CLAUDE.md` only imports it),
    and the verification commands in `CONTRIBUTING.md` if they differ.
 5. Commit `chore(repo): establish contribution workflow` directly to `main` (the
    only direct commit) and push. Choose and add a `LICENSE` with the owner.
 6. Apply settings, dry run first:
-   `terminal(command="python3 SKILL_DIR/scripts/apply_github_settings.py OWNER/REPO")`,
+   `python3 SKILL_DIR/scripts/apply_github_settings.py OWNER/REPO`,
    then the same with `--apply`. It configures squash-only merges with PR-title
    subjects, branch auto-deletion, the label set, `main` protection (required
    checks, linear history, resolved conversations, no force-push/deletion, admins
@@ -158,7 +160,7 @@ At the start of a session and after each merge: fetch/prune, fast-forward
 
 ## Verification
 
-- `CONTRIBUTING.md`, `AGENTS.md`, `SECURITY.md`, `.editorconfig` and `.github/`
+- `CONTRIBUTING.md`, `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`, `.editorconfig` and `.github/`
   exist with no `{{...}}` placeholders left.
 - `apply_github_settings.py OWNER/REPO` (dry run) shows the intended state, and
   `gh api repos/OWNER/REPO/branches/main/protection` lists the required checks.
@@ -167,5 +169,6 @@ At the start of a session and after each merge: fetch/prune, fast-forward
 ## Maintaining This Skill
 
 Source: `https://github.com/whayn/skills` (`skills/repo-workflow`). Change it
-through that repository's own PR workflow, then `hermes skills update repo-workflow`.
+through that repository's own PR workflow, then update your installed copy (see
+the repository README for each agent).
 Rationale and sources: `references/rationale.md`.

@@ -61,9 +61,10 @@ noreply email. Maintainer work uses `Whayn <64968114+whayn@users.noreply.github.
 ## Development and verification
 
 ```bash
-python -m pip install pytest pyyaml ruff
+python -m pip install pytest pyyaml ruff skills-ref
 ruff check . && ruff format --check .
-python -m pytest -q
+python -m pytest -q -rs
+agentskills validate skills/repo-workflow
 git diff --check
 ```
 

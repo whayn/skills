@@ -36,16 +36,44 @@ def bootstrap(repo, *extra):
     return run(BOOTSTRAP, str(repo), "--owner", "octo", "--repo", "demo", *extra)
 
 
-def test_frontmatter_follows_skill_standards():
-    text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+SPEC_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
+
+
+def skill_dirs():
+    return sorted(p.parent for p in (ROOT / "skills").glob("*/SKILL.md"))
+
+
+@pytest.mark.parametrize("skill", skill_dirs(), ids=lambda p: p.name)
+def test_frontmatter_follows_the_agent_skills_spec(skill):
+    """https://agentskills.io/specification: only portable fields, so any agent loads it."""
+    text = (skill / "SKILL.md").read_text(encoding="utf-8")
     assert text.startswith("---\n")
     end = text.index("\n---\n", 4)
     meta = yaml.safe_load(text[4:end])
-    assert meta["name"] == SKILL.name
-    assert len(meta["description"]) <= 60 and meta["description"].endswith(".")
-    for key in ("version", "author", "license", "platforms", "metadata"):
-        assert key in meta
+    assert set(meta) <= SPEC_FIELDS, set(meta) - SPEC_FIELDS
+    assert meta["name"] == skill.name
+    assert re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", meta["name"]) and len(meta["name"]) <= 64
+    assert 0 < len(meta["description"]) <= 1024
+    assert len(meta.get("compatibility", "")) <= 500
+    metadata = meta.get("metadata", {})
+    assert all(type(k) is str and type(v) is str for k, v in metadata.items())
     assert text[end + 5 :].strip()
+
+
+@pytest.mark.parametrize("skill", skill_dirs(), ids=lambda p: p.name)
+def test_reference_validator_accepts_the_skill(skill):
+    pytest.importorskip("skills_ref")
+    from skills_ref.validator import validate
+
+    assert validate(skill) == []
+
+
+@pytest.mark.parametrize("skill", skill_dirs(), ids=lambda p: p.name)
+def test_skill_text_is_agent_neutral(skill):
+    """No one agent's tool-call syntax, commands or directories in the instructions."""
+    text = (skill / "SKILL.md").read_text(encoding="utf-8")
+    for marker in ("terminal(", "skill_view", "hermes skills", ".hermes/", "delegate_task"):
+        assert marker not in text, marker
 
 
 def test_skill_files_carry_no_machine_local_paths():
@@ -73,6 +101,7 @@ def test_bootstrap_renders_complete_valid_files(repo, stack):
     expected = {
         "CONTRIBUTING.md",
         "AGENTS.md",
+        "CLAUDE.md",
         "SECURITY.md",
         ".editorconfig",
         ".github/PULL_REQUEST_TEMPLATE.md",
@@ -148,14 +177,14 @@ def test_dry_run_writes_nothing(repo):
     report = json.loads(bootstrap(repo, "--dry-run", "--local-notebook").stdout)
     assert report["dry_run"] and all(f["action"] != "skip (exists)" for f in report["files"])
     assert [p for p in repo.iterdir() if p.name != ".git"] == []
-    assert "/.hermes/" not in (repo / ".git/info/exclude").read_text(encoding="utf-8")
+    assert "/.notes/" not in (repo / ".git/info/exclude").read_text(encoding="utf-8")
 
 
 def test_local_notebook_is_git_excluded(repo):
     bootstrap(repo, "--local-notebook")
     bootstrap(repo, "--local-notebook")  # idempotent
     exclude = (repo / ".git/info/exclude").read_text(encoding="utf-8").splitlines()
-    for line in ("/HANDOFF.md", "/.hermes/", "/.worktrees/"):
+    for line in ("/HANDOFF.md", "/.notes/", "/.worktrees/"):
         assert exclude.count(line) == 1
     status = subprocess.run(
         ["git", "-C", str(repo), "status", "--porcelain", "--untracked-files=all"],
@@ -163,8 +192,21 @@ def test_local_notebook_is_git_excluded(repo):
         text=True,
         check=True,
     ).stdout
-    assert "HANDOFF.md" not in status and ".hermes" not in status
+    assert "HANDOFF.md" not in status and ".notes" not in status
+    assert (repo / ".notes/README.md").is_file()
     assert "CONTRIBUTING.md" in status
+
+
+def test_notebook_directory_is_configurable(repo):
+    bootstrap(repo, "--local-notebook", "--notebook-dir", ".hermes")
+    assert (repo / ".hermes/README.md").is_file()
+    assert "/.hermes/" in (repo / ".git/info/exclude").read_text(encoding="utf-8").splitlines()
+
+
+def test_claude_md_points_at_agents_md(repo):
+    """Claude Code reads CLAUDE.md, not AGENTS.md; one import keeps a single source."""
+    bootstrap(repo)
+    assert (repo / "CLAUDE.md").read_text(encoding="utf-8").strip().endswith("@AGENTS.md")
 
 
 def conventions_script(repo):
