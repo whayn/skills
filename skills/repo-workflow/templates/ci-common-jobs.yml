@@ -1,0 +1,46 @@
+  secrets:
+    name: Secrets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan history with checksum-verified Gitleaks
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl --fail --silent --show-error --location \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            --output "$RUNNER_TEMP/gitleaks.tar.gz"
+          printf '%s  %s\n' "$GITLEAKS_SHA256" "$RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" git --redact --no-banner --log-opts=--all .
+
+  conventions:
+    name: PR conventions
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check title and source branch without executing contributor code
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BRANCH: ${{ github.head_ref }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          types = r"(?:feat|fix|docs|test|refactor|perf|build|ci|chore|revert)"
+          title = os.environ["PR_TITLE"]
+          branch = os.environ["PR_BRANCH"]
+          assert len(title) <= 72, "PR title must be at most 72 characters"
+          assert re.fullmatch(types + r"(?:\([a-z0-9][a-z0-9-]*\))?!?: [^\s].*", title), "Use type(scope): description"
+          assert not title.endswith("."), "No trailing period in PR titles"
+          if os.environ["PR_AUTHOR"] != "dependabot[bot]":
+              assert re.fullmatch(types + r"/[a-z0-9]+(?:-[a-z0-9]+)*", branch), "Use type/kebab-description branches"
+          print("PR title and branch follow the repository conventions")
+          PY

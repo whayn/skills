@@ -1,0 +1,35 @@
+name: Feature or design proposal
+description: A problem, a bounded proposal and how we would validate it.
+title: "feat: "
+labels: [enhancement, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Discuss substantial work before implementing it. Keep examples synthetic.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and use case
+      description: What is hard today, and why do existing capabilities not solve it?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change and alternatives
+      description: Scope, non-goals and simpler alternatives considered.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and verification
+      description: Observable behavior, tests or benchmarks that would establish success.
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks and compatibility
+      description: Data and format compatibility, migrations, privacy, performance and cost.
