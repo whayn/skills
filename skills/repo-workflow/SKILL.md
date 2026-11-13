@@ -5,7 +5,7 @@ license: MIT
 compatibility: Any coding agent that can run shell commands. Needs git and Python 3.9+; applying GitHub settings needs the GitHub CLI (gh) with admin rights.
 metadata:
   author: whayn
-  version: "0.3.0"
+  version: "0.3.1"
   source: https://github.com/whayn/skills
 ---
 

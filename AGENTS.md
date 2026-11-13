@@ -28,8 +28,9 @@ developer tooling, model routing and orchestration preferences do not belong her
 - Skills are agent-neutral and follow the [Agent Skills specification](https://agentskills.io/specification):
   frontmatter uses only `name` (equal to the directory), `description`,
   `license`, `compatibility`, `metadata` (string values) and `allowed-tools`;
-  `agentskills validate` must pass. Bump `metadata.version` (semver) when
-  behavior changes.
+  `agentskills validate` must pass. Bump `metadata.version` (semver) and
+  update `skills/<skill>/CHANGELOG.md` whenever files under `skills/<skill>/`
+  change (enforced in CI).
 - Instructions name plain shell commands, never one agent's tool-call syntax,
   commands or directories. Agent-specific notes belong in the README.
 - Scripts are standard-library Python that runs on the oldest version the skill

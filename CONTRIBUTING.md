@@ -124,8 +124,14 @@ superseded. Do not bury follow-up work in PR comments: open an issue.
 
 ## Releases
 
-Keep `main` working. Version tags use `vMAJOR.MINOR.PATCH` and are protected.
-Releases are a maintainer action, never part of an ordinary PR.
+Keep `main` working. Each skill is versioned independently in its
+`SKILL.md` (`metadata.version`) and `skills/<skill-name>/CHANGELOG.md`. Any PR
+that changes files under `skills/<skill-name>/` must bump `metadata.version`
+and record the change in that skill's `CHANGELOG.md`.
+
+Version tags use `<skill-name>-vMAJOR.MINOR.PATCH` (for example,
+`repo-workflow-v0.3.1`) and are protected. Releases are a maintainer action,
+never part of an ordinary PR.
 
 ---
 

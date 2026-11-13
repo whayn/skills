@@ -62,3 +62,15 @@ def test_skill_files_carry_no_machine_local_paths(skill):
     for path, text in text_files(skill):
         for marker in ("/opt/data", "/home/", "/Users/", "C:\\Users", "C:/Users"):
             assert marker not in text, (path, marker)
+
+
+@SKILLS
+def test_skill_changelog_records_current_version(skill):
+    changelog = skill / "CHANGELOG.md"
+    assert changelog.is_file(), f"missing {changelog}"
+    meta, _ = frontmatter(skill)
+    version = meta["metadata"]["version"]
+    pattern = re.compile(rf"^## \[?{re.escape(version)}\]?(?:\s|$)", re.MULTILINE)
+    assert pattern.search(changelog.read_text(encoding="utf-8")), (
+        f"{changelog} does not record current version {version}"
+    )
