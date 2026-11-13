@@ -5,7 +5,7 @@ license: MIT
 compatibility: Any coding agent that can run shell commands. Needs git and Python 3.9+; applying GitHub settings needs the GitHub CLI (gh) with admin rights.
 metadata:
   author: whayn
-  version: "0.2.0"
+  version: "0.2.1"
   source: https://github.com/whayn/skills
 ---
 
@@ -31,7 +31,8 @@ run a different process (follow theirs).
 
 - `gh` authenticated as an account with admin rights on the target repository
   (settings) or write rights (normal changes).
-- Python 3.9+ for `scripts/`. No third-party packages.
+- Python 3.9+ for `scripts/`. No third-party packages. Commands below say
+  `python3`; on Windows use `py -3` or `python` (`python3` may open the Store).
 - `SKILL_DIR` below means the directory containing this `SKILL.md`.
 
 ## Authority

@@ -197,6 +197,15 @@ def test_local_notebook_is_git_excluded(repo):
     assert "CONTRIBUTING.md" in status
 
 
+def test_rendered_files_use_lf_line_endings(repo):
+    """The generated .editorconfig demands LF; Windows text mode must not add CRs."""
+    bootstrap(repo, "--local-notebook")
+    written = [p for p in repo.rglob("*") if p.is_file() and ".git" not in p.parts]
+    written.append(repo / ".git/info/exclude")
+    for path in written:
+        assert b"\r\n" not in path.read_bytes(), path
+
+
 def test_notebook_directory_is_configurable(repo):
     bootstrap(repo, "--local-notebook", "--notebook-dir", ".hermes")
     assert (repo / ".hermes/README.md").is_file()
