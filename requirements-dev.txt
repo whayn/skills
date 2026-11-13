@@ -1,0 +1,6 @@
+# Development and CI tools, pinned; Dependabot proposes updates.
+# Skill scripts themselves use only the Python standard library.
+pytest==9.2.0
+PyYAML==6.0.3
+ruff==0.17.5
+skills-ref==0.1.1

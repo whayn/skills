@@ -60,21 +60,34 @@ noreply email. Maintainer work uses `Whayn <64968114+whayn@users.noreply.github.
 
 ## Development and verification
 
+Use a virtual environment with the pinned tools:
+
 ```bash
-python -m pip install pytest pyyaml ruff skills-ref
+python -m venv .venv            # then activate it
+python -m pip install -r requirements-dev.txt
 ruff check . && ruff format --check .
 python -m pytest -q -rs
-agentskills validate skills/repo-workflow
+for skill in skills/*/; do agentskills validate "$skill"; done
+actionlint                      # when workflows or workflow templates change
 git diff --check
 ```
+
+Tests live in `tests/test_skills.py` (checks every skill must pass) and
+`tests/<skill_name>/` (one package per skill). Skill scripts must run on the
+oldest Python a skill declares with the standard library only: set
+`SKILL_PYTHON` to such an interpreter to run them with it while pytest runs on a
+current one. With [`actionlint`](https://github.com/rhysd/actionlint) on `PATH`,
+the tests also lint the rendered workflow templates; otherwise they are skipped.
 
 Add a regression test for each bug and, where practical, show that it fails on
 the base revision and passes on the fix. Record exact commands and actual
 results, and say what was not run. Do not weaken or skip a failing test to get
-green CI. If workflows change, run `actionlint`.
+green CI.
 
-Hosted CI runs quality checks, tests, a history secret scan and a PR title/branch
-convention check. All are required before merging.
+Hosted CI runs quality checks (lint, spec validation, actionlint), tests on
+Linux and Windows with the scripts on Python 3.9 and 3.14, a history secret
+scan and a PR title/branch convention check. All are required before merging;
+the `Tests` check summarizes the whole test matrix.
 
 ## Pull requests and review
 

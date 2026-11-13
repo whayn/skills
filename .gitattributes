@@ -1,0 +1,2 @@
+# LF everywhere, as .editorconfig requires, whatever core.autocrlf says.
+* text=auto eol=lf

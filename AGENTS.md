@@ -32,8 +32,11 @@ developer tooling, model routing and orchestration preferences do not belong her
   behavior changes.
 - Instructions name plain shell commands, never one agent's tool-call syntax,
   commands or directories. Agent-specific notes belong in the README.
-- Scripts are standard-library Python; templates must render with no leftover
+- Scripts are standard-library Python that runs on the oldest version the skill
+  declares, on Linux and Windows; templates must render with no leftover
   placeholders and pass `actionlint` when they are workflows.
+- Each skill has its tests in `tests/<skill_name>/`; `tests/test_skills.py`
+  holds the checks every skill must pass.
 - Skills must not contain machine-local paths, credentials or personal data.
 
 ## Code Review Rules
