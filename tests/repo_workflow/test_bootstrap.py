@@ -32,8 +32,12 @@ def read(repo, name):
     return (repo / name).read_text(encoding="utf-8")
 
 
-def workflow(repo):
-    return yaml.safe_load(read(repo, ".github/workflows/ci.yml"))
+def workflow(repo, name="ci"):
+    return yaml.safe_load(read(repo, f".github/workflows/{name}.yml"))
+
+
+def triggers(wf):
+    return wf.get("on", wf.get(True))  # YAML 1.1 reads the key `on` as True
 
 
 @pytest.mark.parametrize("stack", STACK_ARGS)
@@ -50,6 +54,7 @@ def test_bootstrap_renders_complete_valid_files(repo, stack):
         ".github/release.yml",
         ".github/dependabot.yml",
         ".github/workflows/ci.yml",
+        ".github/workflows/pr-conventions.yml",
         ".github/ISSUE_TEMPLATE/bug.yml",
         ".github/ISSUE_TEMPLATE/feature.yml",
         ".github/ISSUE_TEMPLATE/config.yml",
@@ -82,8 +87,20 @@ def test_rendered_workflows_pass_actionlint(repo, stack):
 
 def test_ci_job_names_match_the_required_checks(repo):
     bootstrap(repo)
-    names = {job["name"] for job in workflow(repo)["jobs"].values()}
-    assert names == set(required_checks())
+    names = [
+        job["name"]
+        for name in ("ci", "pr-conventions")
+        for job in workflow(repo, name)["jobs"].values()
+    ]
+    assert sorted(names) == sorted(required_checks())
+
+
+def test_editing_a_pr_reruns_only_the_conventions_check(repo):
+    """A title edit must not cancel and restart the whole CI on the same head."""
+    bootstrap(repo)
+    assert "edited" not in triggers(workflow(repo))["pull_request"]["types"]
+    conventions = triggers(workflow(repo, "pr-conventions"))["pull_request"]["types"]
+    assert {"opened", "synchronize", "reopened", "edited"} <= set(conventions)
 
 
 def test_commands_with_yaml_syntax_stay_single_scalars(repo):
@@ -165,7 +182,7 @@ def test_claude_md_points_at_agents_md(repo):
 
 
 def conventions_script(repo):
-    step = workflow(repo)["jobs"]["conventions"]["steps"][0]["run"]
+    step = workflow(repo, "pr-conventions")["jobs"]["conventions"]["steps"][0]["run"]
     return step.split("<<'PY'\n", 1)[1].rsplit("PY", 1)[0]
 
 
