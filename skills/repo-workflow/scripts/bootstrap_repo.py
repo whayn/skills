@@ -120,6 +120,12 @@ def plan(args):
     return files
 
 
+def write_lf(path, text):
+    """Write UTF-8 with LF endings on every platform (text mode on Windows adds CRs)."""
+    with open(path, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+
+
 def notebook_dir(args):
     path = Path(args.notebook_dir)
     if path.is_absolute() or ".." in path.parts or not path.parts or path.parts[0] == ".git":
@@ -176,7 +182,7 @@ def main(argv=None):
         if args.dry_run or action.startswith("skip"):
             continue
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        write_lf(path, text)
     if args.local_notebook:
         gdir = git_dir(target)
         if gdir is None:
@@ -188,7 +194,7 @@ def main(argv=None):
         if missing and not args.dry_run:
             exclude.parent.mkdir(parents=True, exist_ok=True)
             sep = "" if not current or current.endswith("\n") else "\n"
-            exclude.write_text(current + sep + "\n".join(missing) + "\n", encoding="utf-8")
+            write_lf(exclude, current + sep + "\n".join(missing) + "\n")
     print(json.dumps({"target": str(target), "dry_run": args.dry_run, "files": report}, indent=2))
     return 0
 

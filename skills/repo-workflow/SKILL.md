@@ -5,7 +5,7 @@ license: MIT
 compatibility: Any coding agent that can run shell commands. Needs git and Python 3.9+; applying GitHub settings needs the GitHub CLI (gh) with admin rights.
 metadata:
   author: whayn
-  version: "0.2.0"
+  version: "0.3.0"
   source: https://github.com/whayn/skills
 ---
 
@@ -31,7 +31,8 @@ run a different process (follow theirs).
 
 - `gh` authenticated as an account with admin rights on the target repository
   (settings) or write rights (normal changes).
-- Python 3.9+ for `scripts/`. No third-party packages.
+- Python 3.9+ for `scripts/`. No third-party packages. Commands below say
+  `python3`; on Windows use `py -3` or `python` (`python3` may open the Store).
 - `SKILL_DIR` below means the directory containing this `SKILL.md`.
 
 ## Authority
@@ -77,9 +78,8 @@ Finished work is pushed and opened as a PR. Unpublished local commits are not
    Comment `@codex review` on substantive code. A request or reaction is not a
    review: read the actual findings. Reproduce each one; fix real defects with a
    test; reject wrong ones with evidence (`path:line`, test name). Resolve threads.
-9. **CI** must pass on the final head. Same-head cancellations caused by editing the
-   PR title/body are not failures; note them once. Never weaken or skip a test to
-   get green.
+9. **CI** must pass on the final head. Never weaken or skip a test to get green.
+   Editing the PR title or body reruns only the `PR conventions` check.
 10. **Hand off.** Report what is verified, what is not, and that the PR is ready;
     the owner merges (squash, PR title as subject). After merge: delete the branch
     and worktree, fast-forward `main`, update local handoff notes, open follow-up
@@ -145,8 +145,9 @@ At the start of a session and after each merge: fetch/prune, fast-forward
 - **Required check names are job `name:` values.** Renaming a CI job without
   updating branch protection blocks every merge; rerun the settings script with
   matching `--check` values.
-- **The PR conventions job runs on `edited`.** Editing a PR cancels and restarts
-  CI on the same head; that is expected.
+- **PR conventions is its own workflow** (`pr-conventions.yml`) because it must
+  rerun when a PR is edited; keep `edited` out of `ci.yml`, or every title edit
+  cancels and restarts the whole CI on the same head.
 - **A branch tracking `origin/main`** (created with `git branch x origin/main`)
   can push to the wrong place. Always `push -u origin HEAD` from the branch.
 - **Branch protection on private repos** needs a paid plan; the settings script

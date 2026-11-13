@@ -18,29 +18,3 @@
           printf '%s  %s\n' "$GITLEAKS_SHA256" "$RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check
           tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
           "$RUNNER_TEMP/gitleaks" git --redact --no-banner --log-opts=--all .
-
-  conventions:
-    name: PR conventions
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - name: Check title and source branch without executing contributor code
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_BRANCH: ${{ github.head_ref }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-        run: |
-          python3 - <<'PY'
-          import os
-          import re
-          types = r"(?:feat|fix|docs|test|refactor|perf|build|ci|chore|revert)"
-          title = os.environ["PR_TITLE"]
-          branch = os.environ["PR_BRANCH"]
-          assert len(title) <= 72, "PR title must be at most 72 characters"
-          assert re.fullmatch(types + r"(?:\([a-z0-9][a-z0-9-]*\))?!?: [^\s].*", title), "Use type(scope): description"
-          assert not title.endswith("."), "No trailing period in PR titles"
-          if os.environ["PR_AUTHOR"] != "dependabot[bot]":
-              assert re.fullmatch(types + r"/[a-z0-9]+(?:-[a-z0-9]+)*", branch), "Use type/kebab-description branches"
-          print("PR title and branch follow the repository conventions")
-          PY

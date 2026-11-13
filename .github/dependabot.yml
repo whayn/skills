@@ -7,4 +7,13 @@ updates:
     open-pull-requests-limit: 3
     commit-message:
       prefix: chore(deps)
-  # Python test tools are installed unpinned in CI; no pip manifest to track.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      dev-tools:
+        patterns: ["*"]
+    commit-message:
+      prefix: chore(deps)
