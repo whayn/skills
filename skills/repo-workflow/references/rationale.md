@@ -37,14 +37,16 @@ project-specific commands or contribution restrictions.
 | Agents push and open PRs; only the owner merges/releases | Work becomes reviewable immediately; irreversible actions stay human |
 | Pinned action SHAs, checksum-verified Gitleaks | Supply-chain hygiene; Dependabot keeps pins fresh |
 | Small label set and two issue forms | Enough to triage, not a bureaucracy |
-| Local git-excluded notebook (`HANDOFF.md`, `.hermes/`) | Session continuity without leaking private evidence |
+| Local git-excluded notebook (`HANDOFF.md`, `.notes/`) | Session continuity without leaking private evidence |
+| Static rules in `AGENTS.md`, procedural playbooks in `SKILL.md`, one-time setup in `references/` | Progressive disclosure keeps per-turn context small while preserving full setup guidance on demand |
+| Specification before code, ceremony proportional to blast radius | Trivial fixes stay fast; behavioral changes freeze acceptance criteria before code; core invariants get property or independent review |
 | Developer tooling in skills, not `AGENTS.md` | `AGENTS.md` stays a portable project contract |
 
 ## Evidence levels
 
 Each level is separate evidence; passing one does not establish the next.
 
-1. Unit tests of pure logic.
+1. Unit tests of pure logic (plus property/invariant tests for parsers, state machines or core math).
 2. Integration tests against real dependencies with synthetic data.
 3. The installed/packaged artifact, outside the source checkout.
 4. Real external behavior (live services, real models, real users).

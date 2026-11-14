@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Agent-neutral GitHub and engineering workflow skills.",
-    "version": "0.3.1"
+    "version": "0.4.0"
   },
   "plugins": [
     {
       "name": "repo-workflow",
-      "description": "Bootstrap and run an evidence-first GitHub repository workflow (issue, branch, tests first, verified PR, bot review and CI, owner merge).",
+      "description": "Bootstrap and run an evidence-first GitHub repository workflow (spec/issue, branch, tests first, verified PR, bot review and CI, owner merge).",
       "source": "./skills/repo-workflow",
-      "version": "0.3.1"
+      "version": "0.4.0"
     }
   ]
 }

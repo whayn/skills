@@ -51,10 +51,10 @@ def test_reference_validator_accepts_the_skill(skill):
 
 @SKILLS
 def test_skill_text_is_agent_neutral(skill):
-    """No one agent's tool-call syntax, commands or directories in the instructions."""
-    _, body = frontmatter(skill)
-    for marker in ("terminal(", "skill_view", "hermes skills", ".hermes/", "delegate_task"):
-        assert marker not in body, marker
+    """No one agent's tool-call syntax, commands or directories in the skill files."""
+    for path, text in text_files(skill):
+        for marker in ("terminal(", "skill_view", "hermes skills", ".hermes/", "delegate_task"):
+            assert marker not in text, (path, marker)
 
 
 @SKILLS
