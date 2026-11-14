@@ -68,6 +68,29 @@ def test_settings_custom_checks_and_branch():
     protection = next(s for s in steps if s["endpoint"].endswith("/protection"))
     assert protection["endpoint"] == "repos/octo/demo/branches/trunk/protection"
     assert protection["body"]["required_status_checks"]["contexts"] == ["Build", "Test"]
+    ruleset = next(s for s in steps if s["method"] == "RULESET")
+    assert ruleset["body"]["conditions"]["ref_name"]["include"] == ["refs/tags/v*"]
+
+
+def test_settings_custom_tag_patterns():
+    steps = plan("--tag-pattern", "refs/tags/v*", "--tag-pattern", "refs/tags/*-v*")
+    ruleset = next(s for s in steps if s["method"] == "RULESET")
+    assert ruleset["body"]["conditions"]["ref_name"]["include"] == [
+        "refs/tags/v*",
+        "refs/tags/*-v*",
+    ]
+
+
+def test_repo_workflow_progressive_disclosure():
+    skill_dir = SETTINGS.parent.parent
+    skill_md = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+    bootstrap_ref = skill_dir / "references" / "bootstrap.md"
+    assert bootstrap_ref.is_file(), "expected references/bootstrap.md for progressive disclosure"
+    assert "references/bootstrap.md" in skill_md
+    assert len(skill_md.splitlines()) <= 140
+    bootstrap_text = bootstrap_ref.read_text(encoding="utf-8")
+    assert "bootstrap_repo.py" in bootstrap_text
+    assert "apply_github_settings.py" in bootstrap_text
 
 
 def test_settings_apply_reports_failures_and_continues(tmp_path):

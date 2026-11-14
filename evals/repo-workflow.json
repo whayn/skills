@@ -6,7 +6,7 @@
       "prompt": "Set up this repository with the repo-workflow skill.",
       "should_trigger": true,
       "expected_behaviors": [
-        "Activates the repo-workflow skill.",
+        "Activates the repo-workflow skill and reads references/bootstrap.md.",
         "Runs bootstrap_repo.py with --dry-run before writing files.",
         "Does not overwrite existing files with --force without asking."
       ]

@@ -12,6 +12,7 @@ import sys
 from urllib.parse import quote
 
 DEFAULT_CHECKS = ("Quality", "Tests", "Secrets", "PR conventions")
+DEFAULT_TAG_PATTERNS = ("refs/tags/v*",)
 LABELS = (
     ("bug", "D73A4A", "Reproducible defect or behavior regression"),
     ("enhancement", "A2EEEF", "Feature or design proposal"),
@@ -28,16 +29,19 @@ LABELS = (
     ("priority: low", "C2E0C6", "Low priority"),
     ("skip-changelog", "EDEDED", "Exclude maintenance-only work from release notes"),
 )
-TAG_RULESET = {
-    "name": "Protect release tags",
-    "target": "tag",
-    "enforcement": "active",
-    "conditions": {"ref_name": {"include": ["refs/tags/v*"], "exclude": []}},
-    "rules": [{"type": "deletion"}, {"type": "non_fast_forward"}, {"type": "update"}],
-}
 
 
-def steps(repo, branch, checks):
+def tag_ruleset(tag_patterns=DEFAULT_TAG_PATTERNS):
+    return {
+        "name": "Protect release tags",
+        "target": "tag",
+        "enforcement": "active",
+        "conditions": {"ref_name": {"include": list(tag_patterns), "exclude": []}},
+        "rules": [{"type": "deletion"}, {"type": "non_fast_forward"}, {"type": "update"}],
+    }
+
+
+def steps(repo, branch, checks, tag_patterns=DEFAULT_TAG_PATTERNS):
     """Ordered (description, method, endpoint, body) requests."""
     r = f"repos/{repo}"
     out = [
@@ -89,7 +93,12 @@ def steps(repo, branch, checks):
                 "required_conversation_resolution": True,
             },
         ),
-        ("protect v* release tags", "RULESET", f"{r}/rulesets", TAG_RULESET),
+        (
+            f"protect release tags ({', '.join(tag_patterns)})",
+            "RULESET",
+            f"{r}/rulesets",
+            tag_ruleset(tag_patterns),
+        ),
         ("private vulnerability reporting", "PUT", f"{r}/private-vulnerability-reporting", None),
         ("Dependabot alerts", "PUT", f"{r}/vulnerability-alerts", None),
         ("Dependabot security updates", "PUT", f"{r}/automated-security-fixes", None),
@@ -153,6 +162,15 @@ def main(argv=None):
         dest="checks",
         help=f"required status check (repeatable; default: {', '.join(DEFAULT_CHECKS)})",
     )
+    parser.add_argument(
+        "--tag-pattern",
+        action="append",
+        dest="tag_patterns",
+        help=(
+            "protected release tag ref pattern "
+            f"(repeatable; default: {', '.join(DEFAULT_TAG_PATTERNS)})"
+        ),
+    )
     parser.add_argument("--gh", default="gh", help="gh executable")
     parser.add_argument("--apply", action="store_true", help="make the changes")
     args = parser.parse_args(argv)
@@ -164,7 +182,12 @@ def main(argv=None):
             branch = (gh(args.gh, "GET", f"repos/{args.repo}") or {}).get("default_branch", "main")
         else:
             branch = "main"
-    planned = steps(args.repo, branch, tuple(args.checks or DEFAULT_CHECKS))
+    planned = steps(
+        args.repo,
+        branch,
+        tuple(args.checks or DEFAULT_CHECKS),
+        tuple(args.tag_patterns or DEFAULT_TAG_PATTERNS),
+    )
     if not args.apply:
         for description, method, endpoint, body in planned:
             print(
